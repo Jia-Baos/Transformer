@@ -24,6 +24,7 @@ def get_attn_pad_mask(seq_q, seq_k):
     batch_size, len_q = seq_q.size()
     batch_size, len_k = seq_k.size()
     # eq(zero) is PAD token
+    # unsqueeze，在指定 dim 上增加张量维度
     pad_attn_mask = seq_k.data.eq(0).unsqueeze(
         1
     )  # [batch_size, 1, len_k], True is masked
@@ -36,20 +37,27 @@ def get_attn_subsequence_mask(seq):
     """
     attn_shape = [seq.size(0), seq.size(1), seq.size(1)]
     subsequence_mask = np.triu(np.ones(attn_shape), k=1)  # Upper triangular matrix
-    subsequence_mask = torch.from_numpy(subsequence_mask).byte()
+    subsequence_mask = torch.from_numpy(subsequence_mask).byte()  # Byte类型张量
     return subsequence_mask  # [batch_size, tgt_len, tgt_len]
 
 
 class PositionalEncoding(nn.Module):
+    """
+    位置嵌入
+    """
+
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
+        # 随机将部分神经元的输出置为0
         self.dropout = nn.Dropout(p=dropout)
 
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(
             torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
-        )
+        )  # (d_model)^((2i)/d_model) -> e^(((2i)/d_model) * ln(d_model))
+
+        # begin from 0 with stride is 2
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0).transpose(0, 1)
@@ -59,7 +67,7 @@ class PositionalEncoding(nn.Module):
         """
         x: [seq_len, batch_size, d_model]
         """
-        x = x + self.pe[: x.size(0), :]
+        x = x + self.pe[: x.size(0), :]  # 对第一维进行切片
         return self.dropout(x)
 
 

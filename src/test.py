@@ -3,6 +3,7 @@ from DataSet import *
 
 
 model = Transformer()
+loader = Data.DataLoader(MyDataSet(enc_inputs, dec_inputs, dec_outputs), 2, True)
 
 
 def greedy_decoder(model, enc_input, start_symbol):

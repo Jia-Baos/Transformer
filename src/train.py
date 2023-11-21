@@ -4,6 +4,7 @@ from DataSet import *
 model = Transformer()
 criterion = nn.CrossEntropyLoss(ignore_index=0)
 optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.99)
+loader = Data.DataLoader(MyDataSet(enc_inputs, dec_inputs, dec_outputs), 2, True)
 
 for epoch in range(30):
     for enc_inputs, dec_inputs, dec_outputs in loader:
